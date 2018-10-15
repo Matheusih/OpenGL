@@ -15,7 +15,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-float processInput(std::vector<Camera> &cameras, GLFWwindow *window, unsigned short &cur_cam);
+void processInput(GLFWwindow *window, std::vector<Model> &models, unsigned short &index);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -79,74 +79,111 @@ int main()
 
     // load models
     // -----------
-    Model ourModel(FileSystem::getPath("resources/objects/nanosuit/nanosuit.obj"));
+	
+    Model ourModel(FileSystem::getPath("resources/objects/nanosuit/nanosuit.obj"),
+		glm::vec3(0.0f, -1.75f, 0.0f),
+		glm::vec3(0.2f, 0.2f, 0.2f)
+	);
+	
+	Model ourModel2(FileSystem::getPath("resources/objects/rock/rock.obj"),
+		glm::vec3(3.0f, -2.0f, 0.0f),
+		glm::vec3(0.5)
+	);
+	Model ourModel3(FileSystem::getPath("resources/objects/planet/planet.obj"),
+		glm::vec3(-2.0f, -1.75f, 0.0f),
+		glm::vec3(0.2f, 0.2f, 0.2f)
+	);
+	Model ourModel4(FileSystem::getPath("resources/objects/rock/rock.obj"),
+		glm::vec3(3.0f, 2.0f, 0.0f),
+		glm::vec3(0.5f, 0.5f, 0.5f)
+	);
+	Model ourModel5(FileSystem::getPath("resources/objects/rock/rock.obj"),
+		glm::vec3(-3.0f, 2.0f, 0.0f),
+		glm::vec3(0.5)
+	);
 
-    
+	//glm::mat4 model;
+	//model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
+	//model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
+	//ourModel.Matrix = model;
+	//ourModel.scale = 0.2f;
+	//ourModel.Position = glm::vec3(0.0f, -1.75f, 0.0f);
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // render loop
     // -----------
-	std::vector<Camera> my_Cameras;
-	unsigned short cur_cam = 0;
-	
-
-	Camera my_camera(glm::vec3(3.0f, 2.0f, 3.0f));
-	my_camera.Front = glm::normalize(glm::vec3(0, 0, 0) - my_camera.Position); //makes camera face origin
-	my_camera.Right = glm::normalize(glm::cross( my_camera.WorldUp, my_camera.Front));
-	my_camera.Up = glm::normalize(glm::cross(my_camera.Front, my_camera.Right));
-	
-	my_Cameras.push_back(camera);
-	my_Cameras.push_back(my_camera);
-	float press = 0;
-	while (!glfwWindowShouldClose(window))
-	{
-		// per-frame time logic
-		// --------------------
-		float currentFrame = glfwGetTime();
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
-
-		// input
-		// -----
-		if((currentFrame - press ) > .03f)
-			press = processInput(my_Cameras, window, cur_cam);
-
-		//Animate
-		// -----
-		if (my_Cameras.size() > 0) {
-			if(my_Cameras[cur_cam].animations.size() > 0)
-				my_Cameras[cur_cam].Animate();
-			// render
-			// ------
-			glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-			// don't forget to enable shader before setting uniforms
-			ourShader.use();
-
-			// view/projection transformations
-			glm::mat4 projection = glm::perspective(glm::radians(my_Cameras[cur_cam].Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-			glm::mat4 view = my_Cameras[cur_cam].GetViewMatrix();
-			//view = glm::lookAt(camera.Position, glm::vec3(0, 0, 0), camera.WorldUp);
-			ourShader.setMat4("projection", projection);
-			ourShader.setMat4("view", view);
-
-			// render the loaded model
-			glm::mat4 model;
-			model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
-			model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
-			ourShader.setMat4("model", model);
-			ourModel.Draw(ourShader);
-
-
-			// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-			// -------------------------------------------------------------------------------
-
-			glfwSwapBuffers(window);
-			glfwPollEvents();
+	std::vector<Model> models;
+	models.push_back(ourModel);
+	models.push_back(ourModel2);
+	models.push_back(ourModel3);
+	models.push_back(ourModel4);
+	models.push_back(ourModel5);
+	/*
+	for (int i = 0; i < models.size(); ++i) {
+		for (int j = 0; j < 10; ++j) {
+			int random = 0 + (rand() % static_cast<int>(9 - 0 + 1));
+			int random2 = 0 + (rand() % static_cast<int>(5 - 0 + 1));
+			models[i].animations.push_back( (Animations) random );
+			if (random == (int)Animations::TRANSLATE)
+				models[i].directions.push_back((Directions)random2);
 		}
-	}
+	}*/
+	unsigned short index = 0;
+	float press = 0;
+    while (!glfwWindowShouldClose(window))
+    {
+        // per-frame time logic
+        // --------------------
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        // input
+        // -----
+		//if ((currentFrame - press) > .3f) {
+			processInput(window, models, index);
+			press = glfwGetTime();
+		//}
+			
+
+
+
+		// animation
+		// -----
+		for (int i = 0; i < models.size(); ++i) {
+			if (models[i].animations.size() > 0)
+				models[i].Animate();
+		}
+		
+        // render
+        // ------
+        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // don't forget to enable shader before setting uniforms
+        ourShader.use();
+
+        // view/projection transformations
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        ourShader.setMat4("projection", projection);
+        ourShader.setMat4("view", view);
+
+        // render the loaded model
+		//ourShader.setMat4("model", model);
+		for (int i = 0; i < models.size(); ++i) {
+			ourShader.setMat4("model", models[i].Matrix);
+			models[i].Draw(ourShader);
+		}
+        //ourModel.Draw(ourShader);
+
+
+        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+        // -------------------------------------------------------------------------------
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
@@ -156,67 +193,128 @@ int main()
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-float processInput(std::vector<Camera> &cameras, GLFWwindow *window, unsigned short &cur_cam)
+void processInput(GLFWwindow *window, std::vector<Model> &models, unsigned short &index)
 {
+	float r1 = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 3.0f));
+	float r2 = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 3.0f));
+	float r3 = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 3.0f));
+	float r4 = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 0.4f));
+
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameras[cur_cam].ProcessKeyboard(FORWARD, deltaTime);
+        camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		cameras[cur_cam].ProcessKeyboard(BACKWARD, deltaTime);
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		cameras[cur_cam].ProcessKeyboard(LEFT, deltaTime);
+        camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		cameras[cur_cam].ProcessKeyboard(RIGHT, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
-		cameras[cur_cam].animations.push_back(Animations::TRANSLATEMZ);
-	if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
-		cameras[cur_cam].animations.push_back(Animations::TRANSLATER);
-	if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
-		cameras[cur_cam].animations.push_back(Animations::TRANSLATEL);
-	if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
-		cameras[cur_cam].animations.push_back(Animations::TRANSLATEZ);
-	if (glfwGetKey(window, GLFW_KEY_F9) == GLFW_PRESS)
-		cameras[cur_cam].animations.push_back(Animations::BSPLINE);
-	if (glfwGetKey(window, GLFW_KEY_F10) == GLFW_PRESS)
-		cameras[cur_cam].animations.push_back(Animations::BEZIER);
+        camera.ProcessKeyboard(RIGHT, deltaTime);
+	
 
+	/*   ROTATION  */
 	if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS) {
-		//if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_RELEASE) {
-			printf("Queued rotation\n");
-			cameras[cur_cam].animations.push_back(Animations::ROTATE);
-		//}
+		if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_RELEASE)
+			printf("WORKING ???");
+		models[index].animations.push_back(ROTATEX);
 	}
+	if (glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS) {
+		models[index].animations.push_back(ROTATEY);
+	}
+	if (glfwGetKey(window, GLFW_KEY_F3) == GLFW_PRESS) {
+		models[index].animations.push_back(ROTATEZ);
+	}
+	if (glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS) {
+		models[index].animations.push_back(SCALE_UP);
+	}
+	if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN) == GLFW_PRESS) {
+		models[index].animations.push_back(SCALE_DOWN);
+	}
+	/*  TRANSLATION  */
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+		models[index].animations.push_back(TRANSLATE);
+		models[index].directions.push_back(mBACKWARD);
+	}
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+		models[index].animations.push_back(TRANSLATE);
+		models[index].directions.push_back(mFORWARD);
+	}
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		models[index].animations.push_back(TRANSLATE);
+		models[index].directions.push_back(mRIGHT);
+	}
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		models[index].animations.push_back(TRANSLATE);
+		models[index].directions.push_back(mUP);
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		models[index].animations.push_back(TRANSLATE);
+		models[index].directions.push_back(mLEFT);
+	}
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		models[index].animations.push_back(TRANSLATE);
+		models[index].directions.push_back(mDOWN);
+	}
+
+	/*   ROTATE POINT   */
 	if (glfwGetKey(window, GLFW_KEY_F7) == GLFW_PRESS) {
-		//if (glfwGetKey(window, GLFW_KEY_F7) == GLFW_RELEASE) {
-		printf("Queued rotation\n");
-		cameras[cur_cam].animations.push_back(Animations::ROTATE_POINT);
-		//}
+		models[index].animations.push_back(ROTATE_ABOUT);
+		models[index].directions.push_back(Y);
 	}
-
-	// 1: Creates new camera at random position with xyz ranging [0,3] looking at origin
-	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-		glm::vec3 Position;
-		for (int i = 0; i < 3; ++i)
-			Position[i] = (float) (rand() % 3 + 0);
-
-		Camera new_cam(Position);
-		new_cam.LookAt(glm::vec3(0, 0, 0));
-		cameras.push_back(new_cam);
+	/*   SPLINES   */
+	if (glfwGetKey(window, GLFW_KEY_F9) == GLFW_PRESS) {
+		models[index].animations.push_back(BSPLINE);
+		models[index].directions.push_back(mRIGHT);
 	}
-
+	if (glfwGetKey(window, GLFW_KEY_F10) == GLFW_PRESS) {
+		models[index].animations.push_back(BEZIER);
+		models[index].directions.push_back(mRIGHT);
+	}
+	/*   MODELS  insert/delete   */
 	if (glfwGetKey(window, GLFW_KEY_DELETE) == GLFW_PRESS) {
-		if (cameras.size() > 1)
-			cameras.erase(cameras.begin() + cur_cam);
-		if (cur_cam > cameras.size() - 1) cur_cam = 0;
+		if (models.size() > 0)
+			models.erase(models.begin());
+		if (index > models.size() - 1)
+			index = 0;
+	}
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+		
+		Model newmodel(FileSystem::getPath("resources/objects/rock/rock.obj"),
+			glm::vec3(r1, r2, r3),
+			glm::vec3(0.2f)
+		);
+		models.push_back(newmodel);
+	}
+	if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+
+		Model newmodel(FileSystem::getPath("resources/objects/nanosuit/nanosuit.obj"),
+			glm::vec3(r1, r2, r3),
+			glm::vec3(r4)
+		);
+		models.push_back(newmodel);
+	}
+	if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+
+		Model newmodel(FileSystem::getPath("resources/objects/cyborg/cyborg.obj"),
+			glm::vec3(r1, r2, r3),
+			glm::vec3(r4)
+		);
+		models.push_back(newmodel);
+	}
+	if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
+
+		Model newmodel(FileSystem::getPath("resources/objects/planet/planet.obj"),
+			glm::vec3(r1, r2,r3),
+			glm::vec3(r4)
+		);
+		models.push_back(newmodel);
 	}
 	if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS) {
-		++cur_cam;
-		if (cur_cam > cameras.size() - 1) cur_cam = 0;
+		++index;
+		if (index > models.size()-1)
+			index = 0;
 	}
-
-	return glfwGetTime();
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
