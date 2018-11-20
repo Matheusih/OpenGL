@@ -81,6 +81,7 @@ int main()
 
     // build and compile shaders
     // -------------------------
+	// gooch.vs and .fs for gooch shading OR basic.vs and .fs for basic lighting
 	Shader ourShader(FileSystem::getPath("resources/gooch.vs").c_str(), FileSystem::getPath("resources/gooch.fs").c_str());
 
 
@@ -116,7 +117,7 @@ int main()
 
 		// set light source model
 		glm::mat4 pmodel;
-		light_angle += 0.01f;
+		light_angle += 0.001f;
 		pmodel = rotate(pmodel, light_angle, vec3(0, 1, 0));
 		pmodel = translate(pmodel, lightPos); // translate it down so it's at the center of the scene
 		pmodel = scale(pmodel, glm::vec3(0.1f));	// it's a bit too big for our scene, so scale it down
